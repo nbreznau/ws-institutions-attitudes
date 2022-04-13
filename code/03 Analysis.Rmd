@@ -1,0 +1,101 @@
+---
+title: "03 Analysis"
+author: "Nate Breznau"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load("tidyverse",
+               "ggplot2",
+               "ragg")
+```
+
+## Data
+
+```{r data}
+# with missing cases removed
+df_na <- readRDS(here::here("data","df_na.RDS"))
+# macro only
+df_macro <- readRDS(here::here("data","df_macro.RDS"))
+df_macro_rog <- readRDS(here::here("data", "df_macro_rog.RDS"))
+```
+
+
+## Institutions in Years
+
+```{r instyear}
+df_na <- df_na %>%
+  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
+
+# add year for macro
+df_macro <- df_macro %>%
+  mutate(soc_sec_age = (wave - unemp_first_law) + (wave - pension_first_law) + (wave - labor_workinjury_firstlaw))
+
+df_macro_rog <- df_macro_rog %>%
+  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
+```
+
+## Center GDP on yearly US GDP
+
+```{r gdp_center}
+
+```
+
+## Adjust for SOCX
+
+```{r socx}
+
+
+# socx is quite linear w/ gov should redistribute
+ggplot(df_macro, aes(y = gov_redist, x = socx)) +
+  geom_point()
+
+# socx is somewhat linear w/ inequality is too large
+ggplot(df_macro, aes(y = incdiff_large, x = socx)) +
+  geom_point()
+
+# socx is quite linear w/ gov intervention scale
+ggplot(df_macro_rog, aes(y = gint, x = socx)) +
+  geom_point()
+
+# socx is not linear w/ liberal_redist_i
+ggplot(df_macro, aes(y = liberal_redist_i, x = socx)) +
+  geom_point()
+
+# gdp also linear, but this could include a time trend
+ggplot(df_macro, aes(y = gov_redist, x = gdp_pc_10k)) +
+  geom_point()
+
+m1 <- lm(gov_redist ~ socx, data = df_macro)
+m2 <- lm(gint ~ socx, data = df_macro_rog)
+
+df_macro <- df_macro %>%
+  mutate(gov_redist_socx = predict.lm(m1, newdata = df_macro),
+         gov_redist_socx_resid = gov_redist - gov_redist_socx)
+
+df_macro_rog <- df_macro_rog %>%
+  mutate(gint_socx = predict.lm(m2, newdata = df_macro_rog),
+         gint_socx_resid = gint - gint_socx)
+
+
+```
+
+## Plot Gov Redist
+
+```{r plot1}
+# check
+ggplot(df_macro, aes(y = gov_redist_socx_resid, x = soc_sec_age)) +
+  geom_point()
+
+
+ggplot(df_macro_rog, aes(y = gint_socx_resid, x = soc_sec_age)) +
+  geom_point()
+
+
+ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
+  geom_point()
+```
+
