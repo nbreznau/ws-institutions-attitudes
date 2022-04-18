@@ -48,8 +48,7 @@ Nelson, K., Fredriksson, D., Korpi, T., Korpi, W., Palme, J. and O. Sjöberg. 20
 ### Setup
 
 
-
-pratstws - Pension replacement rate standard worker single (pbenstws/gapwyear)
+prtstwco	Pension replacement rate standard worker couple (pbenstwco/gapwyear)
 urtsw26f - Standard gross 26-week replacement rate, familied worker (UBESW26F / UGAPWEEK)
 artsw26f - Standard gross 26-week replacement rate, familied worker (ABESW26F / AGAPWEEK)
 
@@ -61,10 +60,11 @@ acovratl - Coverage ratio as proportion of labour force (ANOINSUR /ALABFORC)
 ```{r sied_retr}
 sied <- sied %>%
   mutate(iso3c = country)  %>%
-  select(iso3c, year, pratstws, urtsw26f, artsw26f, pcovratp, ucovratl, acovratl)
+  select(iso3c, year, prtstwco, urtsw26f, artsw26f, pcovratp, ucovratl, acovratl)
 
+# group by year chunks and remove countries that lack data prior to 1980
 sied_plot <- sied %>%
-  subset(iso3c %in% unique(df_macro$iso3c)) %>%
+  subset(iso3c %in% unique(df_macro$iso3c) & !(iso3c %in% c("BGR", "CYP", "EST", "GRC", "HUN", "LVA", "LTU", "LUX", "MLT", "PRT", "ROU", "SVK", "SVN", "ESP", "POL"))) %>%
   mutate(year10 = case_when(
     year > 1940 & year < 1955 ~ 1950,
     year >=1955 & year < 1965 ~ 1960,
@@ -83,7 +83,7 @@ sied_plot <- sied %>%
 
 sied_plot <- sied_plot %>%
   group_by(year10) %>%
-  mutate(pension_rr = mean(pratstws, na.rm = T),
+  mutate(pension_rr = mean(prtstwco, na.rm = T),
          unemp_rr = mean(urtsw26f, na.rm = T),
          workinj_rr = mean(artsw26f, na.rm = T),
          pension_cv = mean(pcovratp, na.rm = T),
@@ -109,7 +109,7 @@ pension <- sied_plot %>%
   ylim(0.2,1) +
   xlim(1950, 2022) +
   annotate("text", x = 1956, y = 0.83, label = "Labor Force\nCoverage", hjust = 0) +
-  annotate("text", x = 1980, y = 0.36, label = "Wage Replacement", hjust = 0) +
+  annotate("text", x = 1980, y = 0.51, label = "Wage Replacement", hjust = 0) +
   theme_classic()
 
 unemp <- sied_plot %>%
