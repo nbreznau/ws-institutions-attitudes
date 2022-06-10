@@ -139,24 +139,52 @@ df_macro_rog <- df_macro_rog %>%
 
 ```{r plot1}
 # check
+agg_png(here::here("results", "Fig2_redist.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro, aes(y = gov_redist_socx_resid, x = soc_sec_age)) +
-  geom_point(aes(color = type_7)) +
+  geom_point(aes(color = type_7, shape = type_7)) +
   scale_color_viridis_d() +
-  geom_smooth(se=FALSE, method="loess", span=0.5) +
-  theme_classic()
+  scale_shape_manual(values = c(15,16,17,8,9,10,11)) +
+  geom_smooth(se=FALSE, method="gam", span=0.5) +
+  labs(y = "Support for Redistribution", 
+       x = "Cumulative Age of Social Policies",
+       color = "Regime Type", shape = "Regime Type") +
+  theme_classic() 
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig2_redist.png"))
+```
 
 
+```{r plot2}
+agg_png(here::here("results", "Fig3_wssupport.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro_rog, aes(y = gint_socx_resid, x = soc_sec_age)) +
-  geom_point(aes(color = type_8)) +
+  geom_point(aes(color = type_8, shape = type_8)) +
   scale_color_viridis_d() +
-  geom_smooth(se=F, method="loess", span=0.5) +
+  scale_shape_manual(values = c(15,16,18,17,8,9,10,11)) +
+  geom_smooth(se=FALSE, method="gam", span=0.5) +
+  labs(y = "Support for the Welfare State", 
+       x = "Cumulative Age of Social Policies",
+       color = "Regime Type", shape = "Regime Type") +
   theme_classic()
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig3_wssupport.png"))
+```
 
 
+```{r plot3}
+agg_png(here::here("results", "Fig4_liberal.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
-  geom_point(aes(color = type_7)) +
+  geom_point(aes(color = type_7, shape = type_7)) +
   scale_color_viridis_d() +
-  geom_smooth(se=FALSE, method="loess", span=0.5) +
+  scale_shape_manual(values = c(15,16,17,8,9,10,11)) +
+  geom_smooth(se=FALSE, method="gam", span=0.5) +
+  labs(y = "Liberal Values", 
+       x = "Cumulative Age of Social Policies",
+       color = "Regime Type", shape = "Regime Type") +
   theme_classic()
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig4_liberal.png"))
 ```
 
