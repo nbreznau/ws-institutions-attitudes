@@ -12,7 +12,10 @@ pacman::p_load("tidyverse",
                "ggplot2",
                "ragg",
                "readxl",
-               "ggpubr")
+               "ggpubr",
+               "jtools",
+               "ggstance",
+               "broom.mixed")
 ```
 
 ## Data
@@ -43,8 +46,9 @@ df_macro_rog <- df_macro_rog %>%
 ```
 
 
+## Fig 1
 
-### Plot Replacement Rates
+### Individual Plots
 
 ```{r sied_plot}
 pension <- sied_plot_m %>%
@@ -82,22 +86,41 @@ workinj <- sied_plot_m %>%
 ### Arrange Plots
 
 ```{r sied_ggarrange}
-agg_png(here::here("results", "rr_fig.png"), res = 144, width = 1600, height = 600)
+agg_png(here::here("results", "Fig1.png"), res = 144, width = 1600, height = 600)
 ggarrange(workinj, pension, unemp,
-          nrow = 1, labels = c("     Work-Injury", "Unemployment", "Pensions"))
+          nrow = 1, labels = c("     Work-Injury", "Pensions", "Unemployment"))
 dev.off()
 
-knitr::include_graphics(here::here("results", "rr_fig.png"))
+knitr::include_graphics(here::here("results", "Fig1.png"))
 ```
 
 
-## Center GDP on yearly US GDP
 
-```{r gdp_center}
-
-```
 
 ## Adjust for SOCX
+
+The problem with SOCX is that it increases over time, so it is necessary to take a cross-sectional version. Take the mean by country. This is imperfect because it is an unbalanced time-series, but it should be good enough for now. The real problem is within-country change which this solves. It also keeps countries relatively sorted in order of 'size of welfare state'. I also do this for GDP here.
+
+```{r socx_cs}
+df_macro <- df_macro %>%
+  group_by(iso3c) %>% 
+  mutate(socx_C = mean(socx),
+         gdp_C = mean(gdp_pc_10k)) %>% 
+  ungroup()
+
+df_macro_rog <- df_macro_rog %>%
+  group_by(iso3c) %>% 
+  mutate(socx_C = mean(socx)) %>% 
+  ungroup()
+```
+
+```{r corrs}
+# Correlations
+cor(select(df_macro, gov_redist, liberal_redist_i, socx, socx_C), use = "pairwise.complete.obs")
+cor(select(df_macro_rog, gint, socx, socx_C), use = "pairwise.complete.obs")
+
+```
+
 
 ```{r socx}
 
@@ -121,8 +144,8 @@ ggplot(df_macro, aes(y = liberal_redist_i, x = socx)) +
 ggplot(df_macro, aes(y = gov_redist, x = gdp_pc_10k)) +
   geom_point()
 
-m1 <- lm(gov_redist ~ socx, data = df_macro)
-m2 <- lm(gint ~ socx, data = df_macro_rog)
+m1 <- lm(gov_redist ~ socx_C, data = df_macro)
+m2 <- lm(gint ~ socx_C, data = df_macro_rog)
 
 df_macro <- df_macro %>%
   mutate(gov_redist_socx = predict.lm(m1, newdata = df_macro),
@@ -135,11 +158,13 @@ df_macro_rog <- df_macro_rog %>%
 
 ```
 
-## Plot Gov Redist
+## Fig 3 Gov Redist
+
+### Adjusted
 
 ```{r plot1}
 # check
-agg_png(here::here("results", "Fig2_redist.png"), res = 144, height = 600, width = 1000)
+agg_png(here::here("results", "Fig3_redist.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro, aes(y = gov_redist_socx_resid, x = soc_sec_age)) +
   geom_point(aes(color = type_7, shape = type_7)) +
   scale_color_viridis_d() +
@@ -154,9 +179,30 @@ dev.off()
 knitr::include_graphics(here::here("results", "Fig2_redist.png"))
 ```
 
+### Raw
+
+```{r plot1raw}
+# check
+agg_png(here::here("results", "Fig3_redist_raw.png"), res = 144, height = 600, width = 1000)
+ggplot(df_macro, aes(y = gov_redist, x = soc_sec_age)) +
+  geom_point(aes(color = type_7, shape = type_7)) +
+  scale_color_viridis_d() +
+  scale_shape_manual(values = c(15,16,17,8,9,10,11)) +
+  geom_smooth(se=FALSE, method="gam", span=0.5) +
+  labs(y = "Support for Redistribution", 
+       x = "Cumulative Age of Social Policies",
+       color = "Regime Type", shape = "Regime Type") +
+  theme_classic() 
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig2_redist_raw.png"))
+```
+## Fig 4 WS Support
+
+### Adjusted
 
 ```{r plot2}
-agg_png(here::here("results", "Fig3_wssupport.png"), res = 144, height = 600, width = 1000)
+agg_png(here::here("results", "Fig4_wssupport.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro_rog, aes(y = gint_socx_resid, x = soc_sec_age)) +
   geom_point(aes(color = type_8, shape = type_8)) +
   scale_color_viridis_d() +
@@ -168,12 +214,32 @@ ggplot(df_macro_rog, aes(y = gint_socx_resid, x = soc_sec_age)) +
   theme_classic()
 dev.off()
 
-knitr::include_graphics(here::here("results", "Fig3_wssupport.png"))
+knitr::include_graphics(here::here("results", "Fig4_wssupport.png"))
 ```
 
+### Raw
 
+```{r plot2raw}
+agg_png(here::here("results", "Fig4_wssupport_raw.png"), res = 144, height = 600, width = 1000)
+ggplot(df_macro_rog, aes(y = gint, x = soc_sec_age)) +
+  geom_point(aes(color = type_8, shape = type_8)) +
+  scale_color_viridis_d() +
+  scale_shape_manual(values = c(15,16,18,17,8,9,10,11)) +
+  geom_smooth(se=FALSE, method="gam", span=0.5) +
+  labs(y = "Support for the Welfare State", 
+       x = "Cumulative Age of Social Policies",
+       color = "Regime Type", shape = "Regime Type") +
+  theme_classic()
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig4_wssupport_raw.png"))
+```
+
+## Fig 5 Liberal Values
+
+### Adjusted
 ```{r plot3}
-agg_png(here::here("results", "Fig4_liberal.png"), res = 144, height = 600, width = 1000)
+agg_png(here::here("results", "Fig5_liberal.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
   geom_point(aes(color = type_7, shape = type_7)) +
   scale_color_viridis_d() +
@@ -185,6 +251,44 @@ ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
   theme_classic()
 dev.off()
 
-knitr::include_graphics(here::here("results", "Fig4_liberal.png"))
+knitr::include_graphics(here::here("results", "Fig5_liberal.png"))
+```
+### Final Variable Mods
+Dummy for former communist
+Re-scale for easier regression results
+```{r fmr_comm}
+df_macro <- df_macro %>% 
+  mutate(fcomm = ifelse(type_7 == "Former Communist", 1, 0),
+         soc_sec_age_100 = soc_sec_age/100)
+
+df_macro_rog <- df_macro_rog %>% 
+  mutate(fcomm = ifelse(type_8 == "Former Communist", 1, 0),
+         soc_sec_age_100 = soc_sec_age/100)
+```
+## Regressions
+
+```{r reg}
+reg1 <- lm(gov_redist ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro)
+reg2 <- lm(gint ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro_rog)
+reg3 <- lm(liberal_redist_i ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro)
+```
+
+### Coef plot
+
+Standardize for ease of interpretation
+```{r regout}
+agg_png(filename = here::here("results", "Fig6.png"), res = 144, height = 700, width = 850)
+plot_summs(reg1, reg2, reg3, scale = T,
+           coefs = c("Age of\nSocial Security" = "soc_sec_age_100",
+                     "SOCX\nCountry Mean" = "socx_C",
+                     "Former\nCommunist" = "fcomm"),
+           model.names = c("Support for\nRedistribution",
+                           "Support for\nthe Welfare State",
+                           "Liberal Values"),
+           colors = c("#287D8EFF", "#453781FF", "#73D055FF"))
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig6.png"))
+
 ```
 
