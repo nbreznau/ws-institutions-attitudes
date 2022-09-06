@@ -51,12 +51,13 @@ pension <- sied_plot_m %>%
   ggplot() +
   geom_line(aes(y = pension_rr, x = year10)) +
   geom_line(aes(y = pension_cv, x = year10), linetype = "dashed") +
-  labs(x = "", y = "Average Rate") +
   ylim(0.2,1) +
   xlim(1950, 2022) +
+  labs(x = "", y = "") +
   annotate("text", x = 1956, y = 0.83, label = "Labor Force\nCoverage", hjust = 0) +
   annotate("text", x = 1980, y = 0.51, label = "Wage Replacement", hjust = 0) +
-  theme_classic()
+  theme_classic() +
+  theme(axis.text.y = element_blank())
 
 unemp <- sied_plot_m %>%
   ggplot() +
@@ -72,19 +73,18 @@ workinj <- sied_plot_m %>%
   ggplot() +
   geom_line(aes(y = workinj_rr, x = year10)) +
   geom_line(aes(y = workinj_cv, x = year10), linetype = "dashed") +
-  labs(x = "", y = "") +
+  labs(x = "", y = "Average Rate") +
   ylim(0.2,1) +
   xlim(1950, 2022) +
-  theme_classic() +
-  theme(axis.text.y = element_blank())
+  theme_classic() 
 
 ```
 ### Arrange Plots
 
 ```{r sied_ggarrange}
 agg_png(here::here("results", "rr_fig.png"), res = 144, width = 1600, height = 600)
-ggarrange(pension, unemp, workinj,
-          nrow = 1, labels = c("     Pensions", "Unemployment", "Work-Injury"))
+ggarrange(workinj, pension, unemp,
+          nrow = 1, labels = c("     Work-Injury", "Unemployment", "Pensions"))
 dev.off()
 
 knitr::include_graphics(here::here("results", "rr_fig.png"))
