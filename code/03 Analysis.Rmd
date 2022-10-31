@@ -164,6 +164,11 @@ df_macro_rog <- df_macro_rog %>%
 
 
 ```
+## Country list
+
+```{r countries}
+
+```
 
 ## Fig 3 Gov Redist
 
