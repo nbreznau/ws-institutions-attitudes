@@ -5,6 +5,8 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -240,7 +242,9 @@ dev.off()
 knitr::include_graphics(here::here("results", "Fig4_wssupport_raw.png"))
 ```
 
-## Fig 5 Liberal Values
+## Fig XXX Liberal Values
+
+In an earlier iteration, I also used "Liberal Values" as a 3rd welfare state 'attitude'. However, peer review suggested maybe this was superfluous and I agreed. Therefore, Liberal Values has been removed from the manuscript but left in here in case the reader is interested and for the sake of workflow steps transparency. 
 
 ### Adjusted
 ```{r plot3}
@@ -259,6 +263,7 @@ dev.off()
 knitr::include_graphics(here::here("results", "Fig5_liberal.png"))
 ```
 ### Final Variable Mods
+
 Dummy for former communist
 Re-scale for easier regression results
 Plot_summs does not standardize the variables properly, so scale them here
@@ -311,8 +316,11 @@ reg6Z <- scale_mod(reg6, scale.response = T)
 ```{r regw}
 #without former communist
 reg1w <- lm(gov_redist ~ soc_sec_age_100 + socx_C, data = df_macro, weights = weight)
-reg2w <- lm(gint ~ soc_sec_age_100 + socx_C, data = df_macro_rog, weights = weight)
+reg2w <- lm(gint ~ soc_sec_age_100 + socx_C, data = df_macro_rog, weights = weight) 
+
+#no longer used
 reg3w <- lm(liberal_redist_i ~ soc_sec_age_100 + socx_C, data = df_macro, weights = weight)
+
 # standardize
 reg1wZ <- scale_mod(reg1w, scale.response = T)
 reg2wZ <- scale_mod(reg2w, scale.response = T)
@@ -333,11 +341,11 @@ reg6wZ <- scale_mod(reg6w, scale.response = T)
 Standardize for ease of interpretation
 ```{r f6a}
 agg_png(filename = here::here("results", "Fig6a.png"), res = 144, height = 400, width = 400)
-plot_summs(reg4Z, reg5Z, reg6Z, 
+plot_summs(reg4Z, reg5Z,  
            coefs = c("Age of\nSocial Security" = "soc_sec_age_100",
                      "SOCX\nCountry Mean" = "socx_C",
                      "Former\nCommunist" = "fcomm"),
-           colors = c("#287D8EFF", "#453781FF", "#73D055FF")) +
+           colors = c("#453781FF", "#73D055FF")) +
            theme(legend.position = "none")
 
 dev.off()
@@ -348,13 +356,12 @@ knitr::include_graphics(here::here("results", "Fig6a.png"))
 
 ```{r f6b}
 agg_png(filename = here::here("results", "Fig6b.png"), res = 144, height = 315, width = 550)
-plot_summs(reg1Z, reg2Z, reg3Z, 
+plot_summs(reg1Z, reg2Z,  
            coefs = c(" " = "soc_sec_age_100",
                      "  " = "socx_C"),
            model.names = c("Support for\nRedistribution",
-                           "Support for\nthe Welfare State",
-                           "Liberal Values"),
-           colors = c("#287D8EFF", "#453781FF", "#73D055FF"))
+                           "Support for\nthe Welfare State"),
+           colors = c("#453781FF", "#73D055FF"))
 
 dev.off()
 
@@ -364,34 +371,30 @@ knitr::include_graphics(here::here("results", "Fig6b.png"))
 
 #### Standard
 ```{r reg1tables}
-tab_model(reg1Z,reg2Z,reg3Z,reg4Z,reg5Z,reg6Z, p.style = "stars", show.ci = F,
+tab_model(reg1Z,reg2Z,reg4Z,reg5Z, p.style = "stars", show.ci = F,
           pred.labels = c("(Intercept)",
                           "Age of Social Security",
                           "Social Spending",
                           "Former Communist"),
           dv.labels = c("Support for Redistri- bution",
                         "Support for Welfare State",
-                        "Liberal Values",
                         "Support for Redistri- bution",
-                        "Support for Welfare State",
-                        "Liberal Values"),
+                        "Support for Welfare State"),
           file = here::here("results","Table1.doc"))
 
 ```
 
 #### Weighted
 ```{r reg1tablesw}
-tab_model(reg1wZ,reg2wZ,reg3wZ,reg4wZ,reg5wZ,reg6wZ, p.style = "stars", show.ci = F,
+tab_model(reg1wZ,reg2wZ,reg4wZ,reg5wZ, p.style = "stars", show.ci = F,
           pred.labels = c("(Intercept)",
                           "Age of Social Security",
                           "Social Spending",
                           "Former Communist"),
           dv.labels = c("Support for Redistri- bution",
                         "Support for Welfare State",
-                        "Liberal Values",
                         "Support for Redistri- bution",
-                        "Support for Welfare State",
-                        "Liberal Values"),
+                        "Support for Welfare State"),
           file = here::here("results","Table2.doc"))
 
 ```
