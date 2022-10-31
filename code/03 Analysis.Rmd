@@ -311,6 +311,8 @@ reg3Z <- scale_mod(reg3, scale.response = T)
 reg4 <- lm(gov_redist ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro)
 reg5 <- lm(gint ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro_rog)
 reg6 <- lm(liberal_redist_i ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro)
+#parabolic
+reg5p <- lm(gint ~ soc_sec_age_100 + I(soc_sec_age_100^2) + socx_C + fcomm, data = df_macro_rog)
 # standardize
 reg4Z <- scale_mod(reg4, scale.response = T)
 reg5Z <- scale_mod(reg5, scale.response = T)
@@ -333,6 +335,8 @@ reg3wZ <- scale_mod(reg3w, scale.response = T)
 #with
 reg4w <- lm(gov_redist ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro, weights = weight)
 reg5w <- lm(gint ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro_rog, weights = weight)
+#parabolic test
+reg5wp <- lm(gint ~ soc_sec_age_100 + I(soc_sec_age_100^2) + socx_C + fcomm, data = df_macro_rog, weights = weight)
 reg6w <- lm(liberal_redist_i ~ soc_sec_age_100 + socx_C + fcomm, data = df_macro, weights = weight)
 # standardize
 reg4wZ <- scale_mod(reg4w, scale.response = T)
