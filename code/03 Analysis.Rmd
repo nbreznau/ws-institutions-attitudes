@@ -248,7 +248,7 @@ In an earlier iteration, I also used "Liberal Values" as a 3rd welfare state 'at
 
 ### Adjusted
 ```{r plot3}
-agg_png(here::here("results", "Fig5_liberal.png"), res = 144, height = 600, width = 1000)
+agg_png(here::here("results", "FigX_liberal.png"), res = 144, height = 600, width = 1000)
 ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
   geom_point(aes(color = type_7, shape = type_7)) +
   scale_color_viridis_d() +
@@ -260,7 +260,7 @@ ggplot(df_macro, aes(y = liberal_redist_i, x = soc_sec_age)) +
   theme_classic()
 dev.off()
 
-knitr::include_graphics(here::here("results", "Fig5_liberal.png"))
+knitr::include_graphics(here::here("results", "FigX_liberal.png"))
 ```
 ### Final Variable Mods
 
@@ -340,7 +340,7 @@ reg6wZ <- scale_mod(reg6w, scale.response = T)
 #### Standard
 Standardize for ease of interpretation
 ```{r f6a}
-agg_png(filename = here::here("results", "Fig6a.png"), res = 144, height = 400, width = 400)
+agg_png(filename = here::here("results", "Fig5a.png"), res = 144, height = 400, width = 400)
 plot_summs(reg4Z, reg5Z,  
            coefs = c("Age of\nSocial Security" = "soc_sec_age_100",
                      "SOCX\nCountry Mean" = "socx_C",
@@ -350,12 +350,12 @@ plot_summs(reg4Z, reg5Z,
 
 dev.off()
 
-knitr::include_graphics(here::here("results", "Fig6a.png"))
+knitr::include_graphics(here::here("results", "Fig5a.png"))
 
 ```
 
 ```{r f6b}
-agg_png(filename = here::here("results", "Fig6b.png"), res = 144, height = 315, width = 550)
+agg_png(filename = here::here("results", "Fig5b.png"), res = 144, height = 315, width = 550)
 plot_summs(reg1Z, reg2Z,  
            coefs = c(" " = "soc_sec_age_100",
                      "  " = "socx_C"),
@@ -365,7 +365,7 @@ plot_summs(reg1Z, reg2Z,
 
 dev.off()
 
-knitr::include_graphics(here::here("results", "Fig6b.png"))
+knitr::include_graphics(here::here("results", "Fig5b.png"))
 ```
 ### Regression Tables
 
