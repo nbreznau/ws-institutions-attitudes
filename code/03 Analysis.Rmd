@@ -411,7 +411,7 @@ tab_model(reg1wZ,reg2wZ,reg4wZ,reg5wZ, p.style = "stars", show.ci = F,
 ### Fig 6 Predicted Margins
 
 ```{r pmargins}
-agg_png(here::here("results", "Fig6.png"), res = 144, height = 800, width = 1000)
+agg_png(here::here("results", "Fig6.png"), res = 144, height = 650, width = 800)
 
 plot_model(reg5, type = "pred", terms = c("soc_sec_age_100", "fcomm")) +
   labs(y = "Support of the Welfare State",
