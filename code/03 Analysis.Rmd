@@ -344,7 +344,7 @@ reg5wZ <- scale_mod(reg5w, scale.response = T)
 reg6wZ <- scale_mod(reg6w, scale.response = T)
 ```
 
-### Coef plot
+### Fig 5 Coef plot
 
 #### Standard
 Standardize for ease of interpretation
@@ -407,3 +407,35 @@ tab_model(reg1wZ,reg2wZ,reg4wZ,reg5wZ, p.style = "stars", show.ci = F,
           file = here::here("results","Table2.doc"))
 
 ```
+
+### Fig 6 Predicted Margins
+
+```{r pmargins}
+agg_png(here::here("results", "Fig6.png"), res = 144, height = 800, width = 1000)
+
+plot_model(reg5, type = "pred", terms = c("soc_sec_age_100", "fcomm")) +
+  labs(y = "Support of the Welfare State",
+       x = "Age of Social Security",
+       title = "",
+       color = "Former\nCommunist") +
+  scale_color_manual(values = c("#453781FF", "#73D055FF")) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "DEU" & df_macro_rog$year == 1996], y = 2.712, hjust = 1, label = "Germany 1996", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "DEU" & df_macro_rog$year == 2016], y = 2.56, hjust = 1, label = "Germany 2016", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "KOR" & df_macro_rog$year == 2006], y = 3.18, hjust = 1, label = "Korea 2006", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "KOR" & df_macro_rog$year == 2016], y = 3.11, hjust = 1, label = "Korea 2016", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "RUS" & df_macro_rog$year == 1996], y = 3.06, hjust = 0, label = "Russia 1996", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "RUS" & df_macro_rog$year == 2016], y = 2.9, hjust = 0, label = "Russia 2016", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "SVN" & df_macro_rog$year == 1996], y = 3.34, hjust = 0, label = "Slovenia 1996", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "SVN" & df_macro_rog$year == 2006], y = 3.27, hjust = 0, label = "Slovenia 2006", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "CAN" & df_macro_rog$year == 1996], y = 2.955, hjust = 1, label = "Canada 1996", size = 2.7) +
+  annotate("text", x = df_macro_rog$soc_sec_age_100[df_macro_rog$iso3c == "CAN" & df_macro_rog$year == 2006], y = 2.875, hjust = 1, label = "Canada 2006", size = 2.7) +
+  theme_classic() +
+  theme(legend.position = c(0.15,0.25))
+
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig6.png"))
+  
+
+```
+
