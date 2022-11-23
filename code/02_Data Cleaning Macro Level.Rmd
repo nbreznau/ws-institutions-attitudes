@@ -490,13 +490,13 @@ eiip <- read_csv(here::here("data", "EIIP_2014.csv"))
 unemp <- read_csv(here::here("data", "labor_unemp_firstlaw.csv")) %>%
   mutate(iso3c = countrycode(cow_code, "cown", "iso3c"),
          unemp_first_law = as.numeric(year)) %>%
-  select(iso3c, unemp_first_law)
+  dplyr::select(iso3c, unemp_first_law)
 
 # pensions (take US social security admin scraped because WeSIS data is not all countries, see scraping folder)
 pension <- readRDS(here::here("data", "ws_intro.rds")) %>%
   mutate(iso3c = countrycode(cow_code, "cown", "iso3c"),
          pension_first_law = as.numeric(old_pension_firstlaw)) %>%
-  select(iso3c, pension_first_law)
+  dplyr::select(iso3c, pension_first_law)
 
 work_inj <- work_inj %>%
   mutate(iso3c = countrycode(cow_code, "cown", "iso3c"))
@@ -504,7 +504,7 @@ work_inj <- work_inj %>%
 eiip <- eiip %>%
   mutate(iso3c = countrycode(Country, "country.name", "iso3c"),
          winj_cov = as.numeric(Coverage_pct_LF)) %>%
-  select(iso3c, winj_cov)
+  dplyr::select(iso3c, winj_cov)
 
 df_na <- left_join(df_na, work_inj, by = "iso3c")
 df_na <- left_join(df_na, eiip, by = "iso3c")
@@ -578,6 +578,64 @@ df_macro_rog <- df_macro_rog %>%
   ))
 ```
 
+## Institutions in Years
+
+```{r instyear}
+df_na <- df_na %>%
+  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
+
+# add year for macro
+df_macro <- df_macro %>%
+  mutate(soc_sec_age = (wave - unemp_first_law) + (wave - pension_first_law) + (wave - labor_workinjury_firstlaw))
+
+df_macro_rog <- df_macro_rog %>%
+  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
+```
+
+## Adjust for SOCX
+
+The problem with SOCX is that it increases over time, so it is necessary to take a cross-sectional version. Take the mean by country. This is imperfect because it is an unbalanced time-series, but it should be good enough for now. The real problem is within-country change which this solves. It also keeps countries relatively sorted in order of 'size of welfare state'. I also do this for GDP here.
+
+```{r socx_cs}
+df_macro <- as.data.frame(df_macro) %>%
+  group_by(iso3c) %>% 
+  mutate(socx_C = mean(socx),
+         gdp_C = mean(gdp_pc_10k)) %>% 
+  ungroup()
+
+df_macro_rog <- as.data.frame(df_macro_rog) %>%
+  group_by(iso3c) %>% 
+  mutate(socx_C = mean(socx)) %>% 
+  ungroup()
+```
+
+### Final Variable Mods
+
+Dummy for former communist
+Re-scale for easier regression results
+Plot_summs does not standardize the variables properly, so scale them here
+```{r fmr_comm}
+df_macro <- df_macro %>% 
+  mutate(fcomm = ifelse(type_7 == "Former Communist", 1, 0),
+         soc_sec_age_100 = soc_sec_age/100,
+         w = 6) %>% 
+  group_by(iso3c) %>% 
+  mutate(groupn = n()) %>% 
+  ungroup() %>% 
+  mutate(weight = w/groupn)
+
+df_macro_rog <- df_macro_rog %>% 
+  mutate(fcomm = ifelse(type_8 == "Former Communist", 1, 0),
+         soc_sec_age_100 = soc_sec_age/100,
+         w = 6) %>% 
+  group_by(iso3c) %>% 
+  mutate(groupn = n()) %>% 
+  ungroup() %>% 
+  mutate(weight = w/groupn)
+
+# count countries, generate weights
+
+```
 
 ## Save DF
 ```{r save}

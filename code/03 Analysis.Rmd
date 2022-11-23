@@ -21,7 +21,8 @@ pacman::p_load("tidyverse",
                "QuantPsyc",
                "sjPlot",
                "sjmisc",
-               "sjlabelled")
+               "sjlabelled",
+               "lme4")
 ```
 
 ## Data
@@ -37,19 +38,7 @@ sied_plot_m <- readRDS(here::here("data", "sied_plot_m.Rds"))
 ```
 
 
-## Institutions in Years
 
-```{r instyear}
-df_na <- df_na %>%
-  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
-
-# add year for macro
-df_macro <- df_macro %>%
-  mutate(soc_sec_age = (wave - unemp_first_law) + (wave - pension_first_law) + (wave - labor_workinjury_firstlaw))
-
-df_macro_rog <- df_macro_rog %>%
-  mutate(soc_sec_age = (year - unemp_first_law) + (year - pension_first_law) + (year - labor_workinjury_firstlaw))
-```
 
 
 ## Fig 1
@@ -103,22 +92,7 @@ knitr::include_graphics(here::here("results", "Fig1.png"))
 
 
 
-## Adjust for SOCX
 
-The problem with SOCX is that it increases over time, so it is necessary to take a cross-sectional version. Take the mean by country. This is imperfect because it is an unbalanced time-series, but it should be good enough for now. The real problem is within-country change which this solves. It also keeps countries relatively sorted in order of 'size of welfare state'. I also do this for GDP here.
-
-```{r socx_cs}
-df_macro <- as.data.frame(df_macro) %>%
-  group_by(iso3c) %>% 
-  mutate(socx_C = mean(socx),
-         gdp_C = mean(gdp_pc_10k)) %>% 
-  ungroup()
-
-df_macro_rog <- as.data.frame(df_macro_rog) %>%
-  group_by(iso3c) %>% 
-  mutate(socx_C = mean(socx)) %>% 
-  ungroup()
-```
 
 ```{r corrs}
 # Correlations
@@ -164,11 +138,7 @@ df_macro_rog <- df_macro_rog %>%
 
 
 ```
-## Country list
 
-```{r countries}
-
-```
 
 ## Fig 3 Gov Redist
 
@@ -267,33 +237,7 @@ dev.off()
 
 knitr::include_graphics(here::here("results", "FigX_liberal.png"))
 ```
-### Final Variable Mods
 
-Dummy for former communist
-Re-scale for easier regression results
-Plot_summs does not standardize the variables properly, so scale them here
-```{r fmr_comm}
-df_macro <- df_macro %>% 
-  mutate(fcomm = ifelse(type_7 == "Former Communist", 1, 0),
-         soc_sec_age_100 = soc_sec_age/100,
-         w = 6) %>% 
-  group_by(iso3c) %>% 
-  mutate(groupn = n()) %>% 
-  ungroup() %>% 
-  mutate(weight = w/groupn)
-
-df_macro_rog <- df_macro_rog %>% 
-  mutate(fcomm = ifelse(type_8 == "Former Communist", 1, 0),
-         soc_sec_age_100 = soc_sec_age/100,
-         w = 6) %>% 
-  group_by(iso3c) %>% 
-  mutate(groupn = n()) %>% 
-  ungroup() %>% 
-  mutate(weight = w/groupn)
-
-# count countries, generate weights
-
-```
 ## Regressions
 
 ### Standard
@@ -411,7 +355,7 @@ tab_model(reg1wZ,reg2wZ,reg4wZ,reg5wZ, p.style = "stars", show.ci = F,
 ### Fig 6 Predicted Margins
 
 ```{r pmargins}
-agg_png(here::here("results", "Fig6.png"), res = 144, height = 650, width = 800)
+agg_png(here::here("results", "Fig6.png"), res = 144, height = 600, width = 750)
 
 plot_model(reg5, type = "pred", terms = c("soc_sec_age_100", "fcomm")) +
   labs(y = "Support of the Welfare State",
@@ -437,5 +381,64 @@ dev.off()
 knitr::include_graphics(here::here("results", "Fig6.png"))
   
 
+```
+
+```{r within_r}
+# exclude cases with only one observation
+df_macro <- df_macro %>%
+  group_by(iso3c) %>%
+  mutate(count = n()) %>%
+  ungroup()
+
+df_macro_rog <- df_macro_rog %>%
+  group_by(iso3c) %>%
+  mutate(count = n()) %>%
+  ungroup()
+
+grand_corr_redist <- lmer(gov_redist ~ (soc_sec_age_100|iso3c), data = subset(df_macro, count != 1))
+grand_corr_gint <- lmer(gint ~ (soc_sec_age_100|iso3c), data = subset(df_macro_rog, count != 1))
+
+#get within-country slopes
+redist_slopes <- coef(grand_corr_redist)$iso3c %>%
+  mutate(iso3c = rownames(.))
+gint_slopes <- coef(grand_corr_gint)$iso3c %>%
+  mutate(iso3c = rownames(.))
+
+#add soc_sec_age_100 to slopes data for plotting
+avg_age_redist <- df_macro %>%
+  dplyr::select(iso3c, soc_sec_age) %>%
+  group_by(iso3c) %>%
+  summarise(soc_sec_age = mean(soc_sec_age))
+
+avg_age_gint <- df_macro_rog %>%
+  dplyr::select(iso3c, soc_sec_age) %>%
+  group_by(iso3c) %>%
+  summarise(soc_sec_age = mean(soc_sec_age))
+
+redist_slopes <- redist_slopes %>%
+  left_join(avg_age_redist, by = "iso3c")
+
+gint_slopes <- gint_slopes %>%
+  left_join(avg_age_gint, by = "iso3c")
+  
+```
+
+# plot within-country slope by age of social security
+```{r slope_plot}
+agg_png(here::here("results","Fig7.png"), res = 144, height = 800, width = 1000)
+ggplot() + 
+  geom_text(aes(x = soc_sec_age, y = soc_sec_age_100, label = iso3c, color = "Redistribution"), data = redist_slopes) +
+  geom_text(aes(x = soc_sec_age, y = soc_sec_age_100, label = iso3c, color = "Welfare State"), data = gint_slopes) +
+  scale_color_manual(values = c("#73D055FF", "#453781FF")) +
+  labs(
+    y = "Within-Country Slope",
+    x = "Average Cumulative Age of Social Security by Country",
+    color = "Support for"
+  ) +
+  theme_classic()
+
+dev.off()
+
+knitr::include_graphics(here::here("results","Fig7.png"))
 ```
 
